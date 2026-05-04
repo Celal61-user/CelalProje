@@ -308,6 +308,12 @@ dialog::backdrop {
     color: var(--muted);
 }
 
+.checkbox-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .dialog-form input,
 .dialog-form select {
     padding: 12px;

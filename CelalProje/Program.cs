@@ -132,7 +132,13 @@ computers.MapGet("/", async (LrpDbContext db) =>
         {
             c.Id,
             c.Name,
+            c.AssetCode,
             c.SerialNumber,
+            c.Brand,
+            c.Processor,
+            c.RamGb,
+            c.HasHdmi,
+            c.HasVeyon,
             c.Status,
             c.LabId,
             LabName = c.Lab!.Name,
@@ -168,6 +174,7 @@ computers.MapPost("/", async (Computer computer, LrpDbContext db) =>
         return Results.BadRequest(new { message = "Gecerli bir ogrenci seciniz." });
     }
 
+    computer.AssetCode = await GenerateAssetCode(db, computer.LabId);
     db.Computers.Add(computer);
     await db.SaveChangesAsync();
     return Results.Created($"/api/computers/{computer.Id}", computer);
@@ -193,9 +200,15 @@ computers.MapPut("/{id:int}", async (int id, Computer input, LrpDbContext db) =>
 
     computer.Name = input.Name;
     computer.SerialNumber = input.SerialNumber;
+    computer.Brand = input.Brand;
+    computer.Processor = input.Processor;
+    computer.RamGb = input.RamGb;
+    computer.HasHdmi = input.HasHdmi;
+    computer.HasVeyon = input.HasVeyon;
     computer.Status = input.Status;
     computer.LabId = input.LabId;
     computer.ResponsibleStudentId = input.ResponsibleStudentId;
+    computer.AssetCode = await GenerateAssetCode(db, input.LabId, computer.Id);
 
     await db.SaveChangesAsync();
     return Results.NoContent();
@@ -290,6 +303,12 @@ dashboard.MapGet("/summary", async (LrpDbContext db) =>
         totalStudents
     });
 });
+
+static async Task<string> GenerateAssetCode(LrpDbContext db, int labId, int? currentComputerId = null)
+{
+    var count = await db.Computers.CountAsync(c => c.LabId == labId && c.Id != currentComputerId);
+    return $"LAB{labId}-PC-{(count + 1):00}";
+}
 
 app.Run();
 

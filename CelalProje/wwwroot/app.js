@@ -99,8 +99,13 @@ function renderComputers() {
         <table>
             <thead>
                 <tr>
+                    <th>Demirbas Kodu</th>
                     <th>Ad</th>
+                    <th>Marka</th>
+                    <th>Islemci</th>
+                    <th>RAM</th>
                     <th>Seri No</th>
+                    <th>Donanim</th>
                     <th>Durum</th>
                     <th>Laboratuvar</th>
                     <th>Sorumlu Ogrenci</th>
@@ -110,8 +115,13 @@ function renderComputers() {
             <tbody>
                 ${state.computers.map(computer => `
                     <tr>
+                        <td>${computer.assetCode}</td>
                         <td>${computer.name}</td>
+                        <td>${computer.brand}</td>
+                        <td>${computer.processor}</td>
+                        <td>${computer.ramGb} GB</td>
                         <td>${computer.serialNumber}</td>
+                        <td>${renderHardware(computer)}</td>
                         <td>${renderStatus(computer.status)}</td>
                         <td>${computer.labName}</td>
                         <td>${computer.responsibleStudentName ?? "-"}</td>
@@ -187,6 +197,17 @@ function renderStatus(status) {
     return `<span class="status-pill ${className}">${label}</span>`;
 }
 
+function renderHardware(computer) {
+    const items = [];
+    if (computer.hasHdmi) {
+        items.push("HDMI");
+    }
+    if (computer.hasVeyon) {
+        items.push("Veyon");
+    }
+    return items.length > 0 ? items.join(", ") : "-";
+}
+
 async function submitLabForm(event) {
     event.preventDefault();
 
@@ -209,7 +230,12 @@ async function submitComputerForm(event) {
     const studentId = document.getElementById("computerStudentId").value;
     const payload = {
         name: document.getElementById("computerName").value.trim(),
+        brand: document.getElementById("computerBrand").value.trim(),
+        processor: document.getElementById("computerProcessor").value.trim(),
+        ramGb: Number(document.getElementById("computerRamGb").value),
         serialNumber: document.getElementById("computerSerialNumber").value.trim(),
+        hasHdmi: document.getElementById("computerHasHdmi").checked,
+        hasVeyon: document.getElementById("computerHasVeyon").checked,
         status: Number(document.getElementById("computerStatus").value),
         labId: Number(document.getElementById("computerLabId").value),
         responsibleStudentId: studentId ? Number(studentId) : null
@@ -291,7 +317,12 @@ function editComputer(id) {
 
     document.getElementById("computerId").value = computer.id;
     document.getElementById("computerName").value = computer.name;
+    document.getElementById("computerBrand").value = computer.brand;
+    document.getElementById("computerProcessor").value = computer.processor;
+    document.getElementById("computerRamGb").value = computer.ramGb;
     document.getElementById("computerSerialNumber").value = computer.serialNumber;
+    document.getElementById("computerHasHdmi").checked = computer.hasHdmi;
+    document.getElementById("computerHasVeyon").checked = computer.hasVeyon;
     document.getElementById("computerStatus").value = computer.status;
     document.getElementById("computerLabId").value = computer.labId;
     document.getElementById("computerStudentId").value = computer.responsibleStudentId ?? "";
@@ -313,14 +344,16 @@ function editStudent(id) {
 function resetForm(dialogId) {
     const forms = {
         labDialog: ["labId", "labName", "labLocation", "labCapacity"],
-        computerDialog: ["computerId", "computerName", "computerSerialNumber", "computerStatus", "computerLabId", "computerStudentId"],
+        computerDialog: ["computerId", "computerName", "computerBrand", "computerProcessor", "computerRamGb", "computerSerialNumber", "computerStatus", "computerLabId", "computerStudentId", "computerHasHdmi", "computerHasVeyon"],
         studentDialog: ["studentId", "studentFirstName", "studentLastName", "studentNumber", "studentEmail"]
     };
 
     for (const fieldId of forms[dialogId]) {
         const element = document.getElementById(fieldId);
         if (!element) continue;
-        if (element.tagName === "SELECT") {
+        if (element.type === "checkbox") {
+            element.checked = false;
+        } else if (element.tagName === "SELECT") {
             element.selectedIndex = 0;
         } else {
             element.value = "";

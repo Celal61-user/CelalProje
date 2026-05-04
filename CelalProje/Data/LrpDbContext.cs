@@ -20,7 +20,19 @@ public class LrpDbContext(DbContextOptions<LrpDbContext> options) : DbContext(op
             .HasMaxLength(100);
 
         modelBuilder.Entity<Computer>()
+            .Property(c => c.AssetCode)
+            .HasMaxLength(50);
+
+        modelBuilder.Entity<Computer>()
             .Property(c => c.SerialNumber)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<Computer>()
+            .Property(c => c.Brand)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<Computer>()
+            .Property(c => c.Processor)
             .HasMaxLength(100);
 
         modelBuilder.Entity<Student>()
@@ -41,6 +53,10 @@ public class LrpDbContext(DbContextOptions<LrpDbContext> options) : DbContext(op
 
         modelBuilder.Entity<Computer>()
             .HasIndex(c => c.SerialNumber)
+            .IsUnique();
+
+        modelBuilder.Entity<Computer>()
+            .HasIndex(c => c.AssetCode)
             .IsUnique();
 
         modelBuilder.Entity<Computer>()
