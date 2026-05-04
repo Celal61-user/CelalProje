@@ -1,7 +1,7 @@
 using CelalProje.Data;
 using CelalProje.Models;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -109,7 +109,7 @@ labs.MapDelete("/{id:int}", async (int id, LrpDbContext db) =>
     if (lab is null) return Results.NotFound();
     if (lab.Computers.Count > 0)
     {
-        return Results.BadRequest(new { message = "Bu laboratuvara bagli bilgisayarlar silinmeden laboratuvar kaldirilamaz." });
+        return Results.BadRequest(new { message = "Bu laboratuvara bağlı bilgisayarlar silinmeden laboratuvar kaldırılamaz." });
     }
 
     db.Labs.Remove(lab);
@@ -158,14 +158,14 @@ computers.MapPost("/", async (Computer computer, LrpDbContext db) =>
     var labExists = await db.Labs.AnyAsync(l => l.Id == computer.LabId);
     if (!labExists)
     {
-        return Results.BadRequest(new { message = "Gecerli bir laboratuvar seciniz." });
+        return Results.BadRequest(new { message = "Geçerli bir laboratuvar seçiniz." });
     }
 
     var studentExists = computer.ResponsibleStudentId is null
         || await db.Students.AnyAsync(s => s.Id == computer.ResponsibleStudentId.Value);
     if (!studentExists)
     {
-        return Results.BadRequest(new { message = "Gecerli bir ogrenci seciniz." });
+        return Results.BadRequest(new { message = "Geçerli bir öğrenci seçiniz." });
     }
 
     computer.AssetCode = await GenerateAssetCode(db, computer.LabId);
@@ -174,6 +174,7 @@ computers.MapPost("/", async (Computer computer, LrpDbContext db) =>
     {
         await EnsureStudentAccountAsync(db, computer.ResponsibleStudentId.Value);
     }
+
     await db.SaveChangesAsync();
     return Results.Created($"/api/computers/{computer.Id}", computer);
 });
@@ -186,14 +187,14 @@ computers.MapPut("/{id:int}", async (int id, Computer input, LrpDbContext db) =>
     var labExists = await db.Labs.AnyAsync(l => l.Id == input.LabId);
     if (!labExists)
     {
-        return Results.BadRequest(new { message = "Gecerli bir laboratuvar seciniz." });
+        return Results.BadRequest(new { message = "Geçerli bir laboratuvar seçiniz." });
     }
 
     var studentExists = input.ResponsibleStudentId is null
         || await db.Students.AnyAsync(s => s.Id == input.ResponsibleStudentId.Value);
     if (!studentExists)
     {
-        return Results.BadRequest(new { message = "Gecerli bir ogrenci seciniz." });
+        return Results.BadRequest(new { message = "Geçerli bir öğrenci seçiniz." });
     }
 
     computer.Name = input.Name;
@@ -205,6 +206,7 @@ computers.MapPut("/{id:int}", async (int id, Computer input, LrpDbContext db) =>
     computer.HasVeyon = input.HasVeyon;
     computer.Status = input.Status;
     computer.ResponsibleStudentId = input.ResponsibleStudentId;
+
     if (computer.LabId != input.LabId)
     {
         computer.LabId = input.LabId;
@@ -214,6 +216,7 @@ computers.MapPut("/{id:int}", async (int id, Computer input, LrpDbContext db) =>
     {
         computer.LabId = input.LabId;
     }
+
     if (input.ResponsibleStudentId.HasValue)
     {
         await EnsureStudentAccountAsync(db, input.ResponsibleStudentId.Value);
@@ -260,6 +263,46 @@ students.MapGet("/{id:int}", async (int id, LrpDbContext db) =>
     return student is null ? Results.NotFound() : Results.Ok(student);
 });
 
+students.MapGet("/portal/{username}", async (string username, LrpDbContext db) =>
+{
+    var student = await db.Students
+        .Include(s => s.UserAccount)
+        .Include(s => s.ResponsibleComputers)
+        .ThenInclude(c => c.Lab)
+        .FirstOrDefaultAsync(s => s.UserAccount != null && s.UserAccount.Username == username);
+
+    if (student is null)
+    {
+        return Results.NotFound();
+    }
+
+    return Results.Ok(new
+    {
+        student.Id,
+        student.FirstName,
+        student.LastName,
+        student.StudentNumber,
+        student.Email,
+        Computers = student.ResponsibleComputers
+            .OrderBy(c => c.AssetCode)
+            .Select(c => new
+            {
+                c.Id,
+                c.Name,
+                c.AssetCode,
+                c.Brand,
+                c.Processor,
+                c.RamGb,
+                c.SerialNumber,
+                c.HasHdmi,
+                c.HasVeyon,
+                c.Status,
+                LabName = c.Lab != null ? c.Lab.Name : string.Empty,
+                LabLocation = c.Lab != null ? c.Lab.Location : string.Empty
+            })
+    });
+});
+
 students.MapPost("/", async (Student student, LrpDbContext db) =>
 {
     db.Students.Add(student);
@@ -289,7 +332,7 @@ students.MapDelete("/{id:int}", async (int id, LrpDbContext db) =>
     var assignedComputerCount = await db.Computers.CountAsync(c => c.ResponsibleStudentId == id);
     if (assignedComputerCount > 0)
     {
-        return Results.BadRequest(new { message = "Ogrenciye atanmis bilgisayarlar var. Once atamalari kaldirin." });
+        return Results.BadRequest(new { message = "Öğrenciye atanmış bilgisayarlar var. Önce atamaları kaldırın." });
     }
 
     db.Students.Remove(student);

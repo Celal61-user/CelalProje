@@ -173,6 +173,23 @@ dialog::backdrop {
     gap: 14px;
 }
 
+.student-empty-card {
+    padding: 18px;
+    border-radius: 18px;
+    background: var(--surface-strong);
+    border: 1px solid rgba(15, 118, 110, 0.1);
+}
+
+.student-empty-card h3,
+.student-empty-card p {
+    margin: 0;
+}
+
+.student-empty-card p {
+    margin-top: 8px;
+    color: var(--muted);
+}
+
 .panel-header {
     display: flex;
     justify-content: space-between;

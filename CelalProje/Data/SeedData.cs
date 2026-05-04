@@ -13,15 +13,15 @@ public static class SeedData
 
         var students = new List<Student>
         {
-            new() { FirstName = "Ayse", LastName = "Yilmaz", StudentNumber = "2024001", Email = "ayse.yilmaz@okul.edu.tr" },
+            new() { FirstName = "Ayşe", LastName = "Yılmaz", StudentNumber = "2024001", Email = "ayse.yilmaz@okul.edu.tr" },
             new() { FirstName = "Mehmet", LastName = "Demir", StudentNumber = "2024002", Email = "mehmet.demir@okul.edu.tr" },
             new() { FirstName = "Elif", LastName = "Kaya", StudentNumber = "2024003", Email = "elif.kaya@okul.edu.tr" }
         };
 
         var labs = new List<Lab>
         {
-            new() { Name = "Yazilim Laboratuvari", Location = "B Blok - 2. Kat", Capacity = 24 },
-            new() { Name = "Ag Laboratuvari", Location = "A Blok - Zemin Kat", Capacity = 16 }
+            new() { Name = "Yazılım Laboratuvarı", Location = "B Blok - 2. Kat", Capacity = 24 },
+            new() { Name = "Ağ Laboratuvarı", Location = "A Blok - Zemin Kat", Capacity = 16 }
         };
 
         db.Students.AddRange(students);
@@ -43,7 +43,7 @@ public static class SeedData
             Username = "admin",
             Password = "1234",
             Role = "Admin",
-            FullName = "Sistem Yoneticisi"
+            FullName = "Sistem Yöneticisi"
         });
 
         var assignedStudents = students.Where(student => computers.Any(c => c.ResponsibleStudentId == student.Id)).ToList();

@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    document.getElementById("adminWelcome").textContent = `Hos geldiniz, ${user.fullName}`;
+    document.getElementById("adminWelcome").textContent = `Hoş geldiniz, ${user.fullName}`;
     document.getElementById("logoutButton").addEventListener("click", logout);
     bindDialogButtons();
     bindForms();
@@ -49,8 +49,8 @@ async function loadDashboard() {
         ["Laboratuvar", summary.totalLabs],
         ["Bilgisayar", summary.totalComputers],
         ["Aktif Bilgisayar", summary.activeComputers],
-        ["Bakimdaki Bilgisayar", summary.maintenanceComputers],
-        ["Ogrenci", summary.totalStudents]
+        ["Bakımdaki Bilgisayar", summary.maintenanceComputers],
+        ["Öğrenci", summary.totalStudents]
     ];
 
     document.getElementById("statsGrid").innerHTML = items.map(([label, value]) => `
@@ -87,7 +87,7 @@ function renderLabs() {
             <p class="lab-meta">Kapasite: ${lab.capacity}</p>
             <p class="lab-meta">Bilgisayar: ${lab.computerCount}</p>
             <div class="row-actions">
-                <button onclick="editLab(${lab.id})">Duzenle</button>
+                <button onclick="editLab(${lab.id})">Düzenle</button>
                 <button class="danger" onclick="deleteLab(${lab.id})">Sil</button>
             </div>
         </article>
@@ -99,17 +99,17 @@ function renderComputers() {
         <table>
             <thead>
                 <tr>
-                    <th>Demirbas Kodu</th>
+                    <th>Demirbaş Kodu</th>
                     <th>Ad</th>
                     <th>Marka</th>
-                    <th>Islemci</th>
+                    <th>İşlemci</th>
                     <th>RAM</th>
                     <th>Seri No</th>
-                    <th>Donanim</th>
+                    <th>Donanım</th>
                     <th>Durum</th>
                     <th>Laboratuvar</th>
-                    <th>Sorumlu Ogrenci</th>
-                    <th>Islem</th>
+                    <th>Sorumlu Öğrenci</th>
+                    <th>İşlem</th>
                 </tr>
             </thead>
             <tbody>
@@ -127,7 +127,7 @@ function renderComputers() {
                         <td>${computer.responsibleStudentName ?? "-"}</td>
                         <td>
                             <div class="row-actions">
-                                <button onclick="editComputer(${computer.id})">Duzenle</button>
+                                <button onclick="editComputer(${computer.id})">Düzenle</button>
                                 <button class="danger" onclick="deleteComputer(${computer.id})">Sil</button>
                             </div>
                         </td>
@@ -146,11 +146,11 @@ function renderStudents() {
             <thead>
                 <tr>
                     <th>Ad Soyad</th>
-                    <th>Ogrenci No</th>
+                    <th>Öğrenci No</th>
                     <th>E-posta</th>
                     <th>Hesap</th>
-                    <th>Sorumlu Oldugu PC</th>
-                    <th>Islem</th>
+                    <th>Sorumlu Olduğu PC</th>
+                    <th>İşlem</th>
                 </tr>
             </thead>
             <tbody>
@@ -159,11 +159,11 @@ function renderStudents() {
                         <td>${student.firstName} ${student.lastName}</td>
                         <td>${student.studentNumber}</td>
                         <td>${student.email}</td>
-                        <td>${student.hasUserAccount ? "Olustu" : "-"}</td>
+                        <td>${student.hasUserAccount ? "Oluştu" : "-"}</td>
                         <td>${student.responsibleComputerCount}</td>
                         <td>
                             <div class="row-actions">
-                                <button onclick="editStudent(${student.id})">Duzenle</button>
+                                <button onclick="editStudent(${student.id})">Düzenle</button>
                                 <button class="danger" onclick="deleteStudent(${student.id})">Sil</button>
                             </div>
                         </td>
@@ -192,7 +192,7 @@ function fillStudentSelect() {
 function renderStatus(status) {
     const map = {
         1: ["Aktif", "status-active"],
-        2: ["Bakimda", "status-maintenance"],
+        2: ["Bakımda", "status-maintenance"],
         3: ["Pasif", "status-passive"]
     };
     const [label, className] = map[status] ?? ["Bilinmiyor", "status-passive"];
@@ -288,7 +288,7 @@ async function deleteStudent(id) {
 }
 
 async function confirmAndDelete(url) {
-    if (!confirm("Kaydi silmek istediginize emin misiniz?")) {
+    if (!confirm("Kaydı silmek istediğinize emin misiniz?")) {
         return;
     }
 
@@ -297,9 +297,9 @@ async function confirmAndDelete(url) {
 }
 
 async function refreshAll() {
-    document.getElementById("systemStatus").textContent = "Guncelleniyor";
+    document.getElementById("systemStatus").textContent = "Güncelleniyor";
     await Promise.all([loadDashboard(), loadLabs(), loadStudents(), loadComputers()]);
-    document.getElementById("systemStatus").textContent = "Hazir";
+    document.getElementById("systemStatus").textContent = "Hazır";
 }
 
 function editLab(id) {
@@ -389,9 +389,9 @@ async function fetchJson(url, options) {
 async function extractError(response) {
     try {
         const data = await response.json();
-        return data.message ?? "Bir hata olustu.";
+        return data.message ?? "Bir hata oluştu.";
     } catch {
-        return "Bir hata olustu.";
+        return "Bir hata oluştu.";
     }
 }
 

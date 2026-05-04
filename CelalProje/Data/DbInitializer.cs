@@ -102,7 +102,7 @@ public static class DbInitializer
             Username = "admin",
             Password = "1234",
             Role = "Admin",
-            FullName = "Sistem Yoneticisi"
+            FullName = "Sistem Yöneticisi"
         });
 
         await db.SaveChangesAsync();

@@ -28,7 +28,7 @@ async function submitLoginForm(event) {
     });
 
     if (!response.ok) {
-        errorElement.textContent = "Kullanici adi veya sifre hatali.";
+        errorElement.textContent = "Kullanıcı adı veya şifre hatalı.";
         return;
     }
 

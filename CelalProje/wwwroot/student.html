@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LRP Ogrenci Paneli</title>
+    <title>LRP Öğrenci Paneli</title>
     <link rel="stylesheet" href="/styles.css">
     <script src="/auth.js"></script>
     <script>
@@ -14,9 +14,9 @@
     <div class="page-shell">
         <header class="hero">
             <div>
-                <p class="eyebrow">Ogrenci Paneli</p>
-                <h1>LRP Ogrenci Ekrani</h1>
-                <p class="hero-copy">Bu sayfa sadece Student rolundeki kullanicilar icin acilir.</p>
+                <p class="eyebrow">Öğrenci Paneli</p>
+                <h1>LRP Öğrenci Ekranı</h1>
+                <p class="hero-copy">Zimmetinize atanmış bilgisayarın teknik özelliklerini bu panelden görebilirsiniz.</p>
             </div>
             <div class="hero-badge">
                 <span>Aktif Rol</span>
@@ -24,11 +24,28 @@
             </div>
         </header>
 
-        <section class="panel student-panel">
-            <h2 id="studentWelcome"></h2>
-            <p>Admin paneline URL ile erisim bu rolde engellenir.</p>
-            <button id="logoutButton">Cikis Yap</button>
+        <section class="toolbar">
+            <div id="studentWelcome" class="toolbar-text"></div>
+            <button id="logoutButton">Çıkış Yap</button>
         </section>
+
+        <section class="stats-grid" id="studentStats"></section>
+
+        <main class="content-grid">
+            <section class="panel student-panel">
+                <div class="panel-header">
+                    <h2>Zimmetli Bilgisayarım</h2>
+                </div>
+                <div id="studentComputerCards" class="card-list"></div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header">
+                    <h2>Teknik Özellikler</h2>
+                </div>
+                <div id="studentComputerTable" class="table-wrap"></div>
+            </section>
+        </main>
     </div>
     <script src="/student.js"></script>
 </body>
