@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LRP Ogrenci Paneli</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/auth.js"></script>
+    <script>
+        requireRole("Student");
+    </script>
+</head>
+<body>
+    <div class="page-shell">
+        <header class="hero">
+            <div>
+                <p class="eyebrow">Ogrenci Paneli</p>
+                <h1>LRP Ogrenci Ekrani</h1>
+                <p class="hero-copy">Bu sayfa sadece Student rolundeki kullanicilar icin acilir.</p>
+            </div>
+            <div class="hero-badge">
+                <span>Aktif Rol</span>
+                <strong id="studentRole">Student</strong>
+            </div>
+        </header>
+
+        <section class="panel student-panel">
+            <h2 id="studentWelcome"></h2>
+            <p>Admin paneline URL ile erisim bu rolde engellenir.</p>
+            <button id="logoutButton">Cikis Yap</button>
+        </section>
+    </div>
+    <script src="/student.js"></script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LRP - Laboratuvar Kaynak Planlama</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/auth.js"></script>
+    <script>
+        requireRole("Admin");
+    </script>
+</head>
+<body>
+    <div class="page-shell">
+        <header class="hero">
+            <div>
+                <p class="eyebrow">Aşama 1</p>
+                <h1>LRP Laboratuvar Kaynak Planlama Sistemi</h1>
+                <p class="hero-copy">
+                    Laboratuvarlari, bilgisayarlari ve sorumlu ogrencileri tek panelden yonetin.
+                </p>
+            </div>
+            <div class="hero-badge">
+                <span>Sistem Durumu</span>
+                <strong id="systemStatus">Hazir</strong>
+            </div>
+        </header>
+        <section class="toolbar">
+            <div id="adminWelcome" class="toolbar-text"></div>
+            <button id="logoutButton">Cikis Yap</button>
+        </section>
+
+        <section class="stats-grid" id="statsGrid"></section>
+
+        <main class="content-grid">
+            <section class="panel">
+                <div class="panel-header">
+                    <h2>Laboratuvarlar</h2>
+                    <button data-dialog-target="labDialog">Yeni Laboratuvar</button>
+                </div>
+                <div id="labsList" class="card-list"></div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header">
+                    <h2>Bilgisayarlar</h2>
+                    <button data-dialog-target="computerDialog">Yeni Bilgisayar</button>
+                </div>
+                <div id="computersTable" class="table-wrap"></div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header">
+                    <h2>Ogrenciler</h2>
+                    <button data-dialog-target="studentDialog">Yeni Ogrenci</button>
+                </div>
+                <div id="studentsTable" class="table-wrap"></div>
+            </section>
+        </main>
+    </div>
+
+    <dialog id="labDialog">
+        <form id="labForm" method="dialog" class="dialog-form">
+            <h3>Laboratuvar Kaydi</h3>
+            <input type="hidden" id="labId">
+            <label>Laboratuvar Adi<input id="labName" required></label>
+            <label>Konum<input id="labLocation" required></label>
+            <label>Kapasite<input id="labCapacity" type="number" min="1" required></label>
+            <menu>
+                <button value="cancel" class="ghost">Iptal</button>
+                <button id="saveLabButton" value="default">Kaydet</button>
+            </menu>
+        </form>
+    </dialog>
+
+    <dialog id="computerDialog">
+        <form id="computerForm" method="dialog" class="dialog-form">
+            <h3>Bilgisayar Kaydi</h3>
+            <input type="hidden" id="computerId">
+            <label>Bilgisayar Adi<input id="computerName" required></label>
+            <label>Seri Numarasi<input id="computerSerialNumber" required></label>
+            <label>Durum
+                <select id="computerStatus">
+                    <option value="1">Aktif</option>
+                    <option value="2">Bakimda</option>
+                    <option value="3">Pasif</option>
+                </select>
+            </label>
+            <label>Laboratuvar<select id="computerLabId" required></select></label>
+            <label>Sorumlu Ogrenci<select id="computerStudentId"></select></label>
+            <menu>
+                <button value="cancel" class="ghost">Iptal</button>
+                <button id="saveComputerButton" value="default">Kaydet</button>
+            </menu>
+        </form>
+    </dialog>
+
+    <dialog id="studentDialog">
+        <form id="studentForm" method="dialog" class="dialog-form">
+            <h3>Ogrenci Kaydi</h3>
+            <input type="hidden" id="studentId">
+            <label>Ad<input id="studentFirstName" required></label>
+            <label>Soyad<input id="studentLastName" required></label>
+            <label>Ogrenci No<input id="studentNumber" required></label>
+            <label>E-posta<input id="studentEmail" type="email" required></label>
+            <menu>
+                <button value="cancel" class="ghost">Iptal</button>
+                <button id="saveStudentButton" value="default">Kaydet</button>
+            </menu>
+        </form>
+    </dialog>
+
+    <script src="/auth.js"></script>
+    <script src="/app.js" defer></script>
+</body>
+</html>

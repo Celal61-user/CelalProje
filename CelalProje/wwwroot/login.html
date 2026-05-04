@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LRP Giris</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="login-shell">
+        <section class="login-card">
+            <p class="eyebrow">LRP</p>
+            <h1>Laboratuvar Kaynak Planlama</h1>
+            <p class="hero-copy">Admin ve ogrenci girisleri icin rol bazli yonlendirme aktif.</p>
+            <form id="loginForm" class="dialog-form">
+                <label>Kullanici Adi<input id="username" required></label>
+                <label>Sifre<input id="password" type="password" required></label>
+                <button type="submit">Giris Yap</button>
+                <p id="loginError" class="error-text"></p>
+            </form>
+            <div class="login-hint">
+                <strong>Demo Hesaplar</strong>
+                <span>Admin: admin / 1234</span>
+                <span>Student: student / 1234</span>
+            </div>
+        </section>
+    </div>
+    <script src="/auth.js"></script>
+    <script src="/login.js"></script>
+</body>
+</html>

@@ -1,0 +1,363 @@
+:root {
+    --bg: #f4efe8;
+    --surface: rgba(255, 255, 255, 0.85);
+    --surface-strong: #ffffff;
+    --text: #1f2933;
+    --muted: #52606d;
+    --primary: #0f766e;
+    --primary-dark: #134e4a;
+    --accent: #f59e0b;
+    --danger: #b91c1c;
+    --border: rgba(15, 118, 110, 0.14);
+    --shadow: 0 18px 50px rgba(31, 41, 51, 0.12);
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background:
+        radial-gradient(circle at top left, rgba(245, 158, 11, 0.22), transparent 28%),
+        radial-gradient(circle at top right, rgba(15, 118, 110, 0.18), transparent 32%),
+        linear-gradient(180deg, #f6f1ea 0%, #eef7f5 100%);
+    color: var(--text);
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+.page-shell {
+    width: min(1200px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 32px 0 48px;
+}
+
+.login-shell {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+}
+
+.login-card {
+    width: min(520px, 100%);
+    padding: 32px;
+    border-radius: 28px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+}
+
+.hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 28px;
+    border-radius: 28px;
+    background: linear-gradient(135deg, rgba(15, 118, 110, 0.94), rgba(19, 78, 74, 0.92));
+    color: white;
+    box-shadow: var(--shadow);
+}
+
+.eyebrow {
+    margin: 0 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 0.8rem;
+    opacity: 0.75;
+}
+
+.hero h1 {
+    margin: 0 0 12px;
+    font-size: clamp(2rem, 4vw, 3.4rem);
+}
+
+.hero-copy {
+    margin: 0;
+    max-width: 680px;
+    color: rgba(255, 255, 255, 0.84);
+}
+
+.hero-badge {
+    min-width: 180px;
+    align-self: flex-start;
+    padding: 18px 20px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8px);
+}
+
+.hero-badge span {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.hero-badge strong {
+    font-size: 1.4rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+}
+
+.stat-card,
+.panel,
+dialog::backdrop {
+    transition: all 180ms ease;
+}
+
+.stat-card,
+.panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow);
+}
+
+.stat-card {
+    padding: 22px;
+    border-radius: 22px;
+}
+
+.stat-card span {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--muted);
+}
+
+.stat-card strong {
+    font-size: 2rem;
+}
+
+.content-grid {
+    display: grid;
+    gap: 18px;
+}
+
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin: 18px 0 24px;
+    padding: 14px 18px;
+    border-radius: 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+}
+
+.toolbar-text {
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.panel {
+    padding: 22px;
+    border-radius: 24px;
+}
+
+.student-panel {
+    display: grid;
+    gap: 14px;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.panel-header h2 {
+    margin: 0;
+}
+
+.card-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+}
+
+.lab-card {
+    padding: 18px;
+    border-radius: 18px;
+    background: var(--surface-strong);
+    border: 1px solid rgba(15, 118, 110, 0.1);
+}
+
+.lab-card h3 {
+    margin: 0 0 12px;
+}
+
+.lab-meta {
+    margin: 6px 0;
+    color: var(--muted);
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 14px 10px;
+    border-bottom: 1px solid rgba(82, 96, 109, 0.16);
+    text-align: left;
+}
+
+th {
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.status-pill {
+    display: inline-flex;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status-active {
+    color: #065f46;
+    background: rgba(16, 185, 129, 0.14);
+}
+
+.status-maintenance {
+    color: #92400e;
+    background: rgba(245, 158, 11, 0.16);
+}
+
+.status-passive {
+    color: #475569;
+    background: rgba(148, 163, 184, 0.2);
+}
+
+button {
+    padding: 11px 16px;
+    border: none;
+    border-radius: 12px;
+    background: var(--primary);
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background: var(--primary-dark);
+}
+
+button.ghost {
+    background: transparent;
+    color: var(--muted);
+}
+
+.row-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.row-actions .danger {
+    background: rgba(185, 28, 28, 0.12);
+    color: var(--danger);
+}
+
+dialog {
+    width: min(520px, calc(100% - 24px));
+    border: none;
+    border-radius: 24px;
+    padding: 0;
+    background: white;
+    box-shadow: var(--shadow);
+}
+
+dialog::backdrop {
+    background: rgba(15, 23, 42, 0.36);
+}
+
+.dialog-form {
+    display: grid;
+    gap: 14px;
+    padding: 24px;
+}
+
+.dialog-form h3 {
+    margin: 0 0 8px;
+}
+
+.dialog-form label {
+    display: grid;
+    gap: 8px;
+    color: var(--muted);
+}
+
+.dialog-form input,
+.dialog-form select {
+    padding: 12px;
+    border: 1px solid rgba(82, 96, 109, 0.3);
+    border-radius: 12px;
+    background: #fff;
+}
+
+menu {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin: 10px 0 0;
+    padding: 0;
+}
+
+.login-hint {
+    display: grid;
+    gap: 6px;
+    margin-top: 18px;
+    color: var(--muted);
+}
+
+.error-text {
+    min-height: 20px;
+    margin: 0;
+    color: var(--danger);
+}
+
+@media (max-width: 768px) {
+    .page-shell {
+        width: min(100% - 20px, 1000px);
+        padding-top: 20px;
+    }
+
+    .hero {
+        flex-direction: column;
+    }
+
+    .panel-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .row-actions {
+        flex-direction: column;
+    }
+}
