@@ -8,4 +8,5 @@ public class Student
     public string StudentNumber { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public List<Computer> ResponsibleComputers { get; set; } = [];
+    public UserAccount? UserAccount { get; set; }
 }

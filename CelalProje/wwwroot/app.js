@@ -148,6 +148,7 @@ function renderStudents() {
                     <th>Ad Soyad</th>
                     <th>Ogrenci No</th>
                     <th>E-posta</th>
+                    <th>Hesap</th>
                     <th>Sorumlu Oldugu PC</th>
                     <th>Islem</th>
                 </tr>
@@ -158,6 +159,7 @@ function renderStudents() {
                         <td>${student.firstName} ${student.lastName}</td>
                         <td>${student.studentNumber}</td>
                         <td>${student.email}</td>
+                        <td>${student.hasUserAccount ? "Olustu" : "-"}</td>
                         <td>${student.responsibleComputerCount}</td>
                         <td>
                             <div class="row-actions">
@@ -183,7 +185,7 @@ function fillLabSelect() {
 function fillStudentSelect() {
     const select = document.getElementById("computerStudentId");
     select.innerHTML = `<option value="">Atama Yok</option>${state.students
-        .map(student => `<option value="${student.id}">${student.firstName} ${student.lastName}</option>`)
+        .map(student => `<option value="${student.id}">${student.studentNumber} - ${student.firstName} ${student.lastName}</option>`)
         .join("")}`;
 }
 

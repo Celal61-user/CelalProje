@@ -8,6 +8,7 @@ public class LrpDbContext(DbContextOptions<LrpDbContext> options) : DbContext(op
     public DbSet<Lab> Labs => Set<Lab>();
     public DbSet<Computer> Computers => Set<Computer>();
     public DbSet<Student> Students => Set<Student>();
+    public DbSet<UserAccount> UserAccounts => Set<UserAccount>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -51,12 +52,32 @@ public class LrpDbContext(DbContextOptions<LrpDbContext> options) : DbContext(op
             .HasIndex(s => s.StudentNumber)
             .IsUnique();
 
+        modelBuilder.Entity<UserAccount>()
+            .Property(u => u.Username)
+            .HasMaxLength(50);
+
+        modelBuilder.Entity<UserAccount>()
+            .Property(u => u.Password)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<UserAccount>()
+            .Property(u => u.Role)
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<UserAccount>()
+            .Property(u => u.FullName)
+            .HasMaxLength(100);
+
         modelBuilder.Entity<Computer>()
             .HasIndex(c => c.SerialNumber)
             .IsUnique();
 
         modelBuilder.Entity<Computer>()
             .HasIndex(c => c.AssetCode)
+            .IsUnique();
+
+        modelBuilder.Entity<UserAccount>()
+            .HasIndex(u => u.Username)
             .IsUnique();
 
         modelBuilder.Entity<Computer>()
@@ -70,5 +91,11 @@ public class LrpDbContext(DbContextOptions<LrpDbContext> options) : DbContext(op
             .WithMany(s => s.ResponsibleComputers)
             .HasForeignKey(c => c.ResponsibleStudentId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<UserAccount>()
+            .HasOne(u => u.Student)
+            .WithOne(s => s.UserAccount)
+            .HasForeignKey<UserAccount>(u => u.StudentId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

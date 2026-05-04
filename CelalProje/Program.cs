@@ -16,7 +16,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<LrpDbContext>();
-    db.Database.EnsureCreated();
+    await DbInitializer.InitializeAsync(db);
     SeedData.Initialize(db);
 }
 
@@ -39,16 +39,10 @@ var computers = app.MapGroup("/api/computers").WithTags("Computers");
 var students = app.MapGroup("/api/students").WithTags("Students");
 var dashboard = app.MapGroup("/api/dashboard").WithTags("Dashboard");
 
-var users = new List<AuthUser>
+auth.MapPost("/login", async (LoginRequest request, LrpDbContext db) =>
 {
-    new() { Username = "admin", Password = "1234", Role = "Admin", FullName = "Sistem Yoneticisi" },
-    new() { Username = "student", Password = "1234", Role = "Student", FullName = "Demo Ogrenci" }
-};
-
-auth.MapPost("/login", (LoginRequest request) =>
-{
-    var user = users.FirstOrDefault(u =>
-        u.Username.Equals(request.Username, StringComparison.OrdinalIgnoreCase) &&
+    var user = await db.UserAccounts.FirstOrDefaultAsync(u =>
+        u.Username == request.Username &&
         u.Password == request.Password);
 
     if (user is null)
@@ -176,6 +170,10 @@ computers.MapPost("/", async (Computer computer, LrpDbContext db) =>
 
     computer.AssetCode = await GenerateAssetCode(db, computer.LabId);
     db.Computers.Add(computer);
+    if (computer.ResponsibleStudentId.HasValue)
+    {
+        await EnsureStudentAccountAsync(db, computer.ResponsibleStudentId.Value);
+    }
     await db.SaveChangesAsync();
     return Results.Created($"/api/computers/{computer.Id}", computer);
 });
@@ -206,9 +204,20 @@ computers.MapPut("/{id:int}", async (int id, Computer input, LrpDbContext db) =>
     computer.HasHdmi = input.HasHdmi;
     computer.HasVeyon = input.HasVeyon;
     computer.Status = input.Status;
-    computer.LabId = input.LabId;
     computer.ResponsibleStudentId = input.ResponsibleStudentId;
-    computer.AssetCode = await GenerateAssetCode(db, input.LabId, computer.Id);
+    if (computer.LabId != input.LabId)
+    {
+        computer.LabId = input.LabId;
+        computer.AssetCode = await GenerateAssetCode(db, input.LabId, computer.Id);
+    }
+    else
+    {
+        computer.LabId = input.LabId;
+    }
+    if (input.ResponsibleStudentId.HasValue)
+    {
+        await EnsureStudentAccountAsync(db, input.ResponsibleStudentId.Value);
+    }
 
     await db.SaveChangesAsync();
     return Results.NoContent();
@@ -227,6 +236,7 @@ computers.MapDelete("/{id:int}", async (int id, LrpDbContext db) =>
 students.MapGet("/", async (LrpDbContext db) =>
     await db.Students
         .Include(s => s.ResponsibleComputers)
+        .Include(s => s.UserAccount)
         .OrderBy(s => s.StudentNumber)
         .Select(s => new
         {
@@ -235,6 +245,7 @@ students.MapGet("/", async (LrpDbContext db) =>
             s.LastName,
             s.StudentNumber,
             s.Email,
+            HasUserAccount = s.UserAccount != null,
             ResponsibleComputerCount = s.ResponsibleComputers.Count
         })
         .ToListAsync());
@@ -306,18 +317,47 @@ dashboard.MapGet("/summary", async (LrpDbContext db) =>
 
 static async Task<string> GenerateAssetCode(LrpDbContext db, int labId, int? currentComputerId = null)
 {
-    var count = await db.Computers.CountAsync(c => c.LabId == labId && c.Id != currentComputerId);
-    return $"LAB{labId}-PC-{(count + 1):00}";
+    var existingCodes = await db.Computers
+        .Where(c => c.LabId == labId && c.Id != currentComputerId)
+        .Select(c => c.AssetCode)
+        .ToListAsync();
+
+    var nextNumber = existingCodes
+        .Select(code =>
+        {
+            var suffix = code.Split("-PC-").LastOrDefault();
+            return int.TryParse(suffix, out var number) ? number : 0;
+        })
+        .DefaultIfEmpty(0)
+        .Max() + 1;
+
+    return $"LAB{labId}-PC-{nextNumber:00}";
+}
+
+static async Task EnsureStudentAccountAsync(LrpDbContext db, int studentId)
+{
+    var existingAccount = await db.UserAccounts.AnyAsync(u => u.StudentId == studentId);
+    if (existingAccount)
+    {
+        return;
+    }
+
+    var student = await db.Students.FindAsync(studentId);
+    if (student is null)
+    {
+        return;
+    }
+
+    db.UserAccounts.Add(new UserAccount
+    {
+        Username = student.StudentNumber,
+        Password = student.StudentNumber,
+        Role = "Student",
+        FullName = $"{student.FirstName} {student.LastName}",
+        StudentId = student.Id
+    });
 }
 
 app.Run();
 
 record LoginRequest(string Username, string Password);
-
-class AuthUser
-{
-    public string Username { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
-    public string Role { get; set; } = string.Empty;
-    public string FullName { get; set; } = string.Empty;
-}

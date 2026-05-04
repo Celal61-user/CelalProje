@@ -37,5 +37,28 @@ public static class SeedData
 
         db.Computers.AddRange(computers);
         db.SaveChanges();
+
+        db.UserAccounts.Add(new UserAccount
+        {
+            Username = "admin",
+            Password = "1234",
+            Role = "Admin",
+            FullName = "Sistem Yoneticisi"
+        });
+
+        var assignedStudents = students.Where(student => computers.Any(c => c.ResponsibleStudentId == student.Id)).ToList();
+        foreach (var student in assignedStudents)
+        {
+            db.UserAccounts.Add(new UserAccount
+            {
+                Username = student.StudentNumber,
+                Password = student.StudentNumber,
+                Role = "Student",
+                FullName = $"{student.FirstName} {student.LastName}",
+                StudentId = student.Id
+            });
+        }
+
+        db.SaveChanges();
     }
 }
