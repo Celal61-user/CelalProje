@@ -1,133 +1,145 @@
+const studentState = {
+    user: null,
+    data: null,
+    currentPage: "overview"
+};
+
+const studentPageConfig = {
+    overview: { eyebrow: "Portal", title: "Genel Bakış" },
+    details: { eyebrow: "Portal", title: "Teknik Detaylar" }
+};
+
 document.addEventListener("DOMContentLoaded", async () => {
     const user = requireRole("Student");
     if (!user) {
         return;
     }
 
-    document.getElementById("studentWelcome").textContent = `Hoş geldin, ${user.fullName}`;
+    studentState.user = user;
+    document.getElementById("studentWelcome").textContent = user.fullName;
     document.getElementById("logoutButton").addEventListener("click", logout);
+    document.getElementById("studentSidebarNav").addEventListener("click", handleStudentNavigation);
 
-    const data = await fetchStudentPortal(user.username);
-    renderStudentStats(data);
-    renderStudentCards(data.computers);
-    renderStudentTable(data.computers);
+    const response = await request({ url: `/api/students/portal/${encodeURIComponent(user.username)}` });
+    studentState.data = response.data;
+    loadStudentPage("overview");
 });
 
-async function fetchStudentPortal(username) {
-    const response = await fetch(`/api/students/portal/${encodeURIComponent(username)}`);
-    if (!response.ok) {
-        throw new Error("Öğrenci paneli yüklenemedi.");
-    }
-
-    return response.json();
-}
-
-function renderStudentStats(data) {
-    const activeCount = data.computers.filter(computer => computer.status === 1).length;
-    const hdmiCount = data.computers.filter(computer => computer.hasHdmi).length;
-    const veyonCount = data.computers.filter(computer => computer.hasVeyon).length;
-
-    const items = [
-        ["Öğrenci No", data.studentNumber],
-        ["Zimmetli Bilgisayar", data.computers.length],
-        ["Aktif Bilgisayar", activeCount],
-        ["HDMI", hdmiCount],
-        ["Veyon", veyonCount]
-    ];
-
-    document.getElementById("studentStats").innerHTML = items.map(([label, value]) => `
-        <article class="stat-card">
-            <span>${label}</span>
-            <strong>${value}</strong>
-        </article>
-    `).join("");
-}
-
-function renderStudentCards(computers) {
-    const container = document.getElementById("studentComputerCards");
-
-    if (computers.length === 0) {
-        container.innerHTML = `
-            <article class="student-empty-card">
-                <h3>Zimmetli bilgisayar bulunamadı</h3>
-                <p>Bu hesaba bağlı bir bilgisayar ataması yok.</p>
-            </article>
-        `;
+function handleStudentNavigation(event) {
+    const button = event.target.closest("[data-page]");
+    if (!button) {
         return;
     }
 
-    container.innerHTML = computers.map(computer => `
-        <article class="lab-card">
-            <h3>${computer.assetCode}</h3>
-            <p class="lab-meta">Ad: ${computer.name}</p>
-            <p class="lab-meta">Laboratuvar: ${computer.labName}</p>
-            <p class="lab-meta">Konum: ${computer.labLocation}</p>
-            <p class="lab-meta">Durum: ${renderStudentStatusText(computer.status)}</p>
-        </article>
-    `).join("");
+    loadStudentPage(button.dataset.page);
 }
 
-function renderStudentTable(computers) {
-    if (computers.length === 0) {
-        document.getElementById("studentComputerTable").innerHTML = "";
-        return;
-    }
+function loadStudentPage(page) {
+    studentState.currentPage = page;
+    document.getElementById("studentPageEyebrow").textContent = studentPageConfig[page].eyebrow;
+    document.getElementById("studentPageTitle").textContent = studentPageConfig[page].title;
 
-    const table = `
-        <table>
-            <thead>
-                <tr>
-                    <th>Demirbaş Kodu</th>
-                    <th>Ad</th>
-                    <th>Marka</th>
-                    <th>İşlemci</th>
-                    <th>RAM</th>
-                    <th>Seri No</th>
-                    <th>HDMI</th>
-                    <th>Veyon</th>
-                    <th>Durum</th>
-                    <th>Laboratuvar</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${computers.map(computer => `
-                    <tr>
-                        <td>${computer.assetCode}</td>
-                        <td>${computer.name}</td>
-                        <td>${computer.brand}</td>
-                        <td>${computer.processor}</td>
-                        <td>${computer.ramGb} GB</td>
-                        <td>${computer.serialNumber}</td>
-                        <td>${computer.hasHdmi ? "Var" : "Yok"}</td>
-                        <td>${computer.hasVeyon ? "Var" : "Yok"}</td>
-                        <td>${renderStudentStatus(computer.status)}</td>
-                        <td>${computer.labName}</td>
-                    </tr>
-                `).join("")}
-            </tbody>
-        </table>
+    document.querySelectorAll("#studentSidebarNav [data-page]").forEach(button => {
+        button.classList.toggle("active", button.dataset.page === page);
+    });
+
+    const content = document.getElementById("studentPageContent");
+    content.innerHTML = page === "overview" ? renderStudentOverview() : renderStudentDetails();
+}
+
+function renderStudentOverview() {
+    const computers = studentState.data.computers;
+    const activeCount = computers.filter(computer => computer.status === 1).length;
+    const hdmiCount = computers.filter(computer => computer.hasHdmi).length;
+    const veyonCount = computers.filter(computer => computer.hasVeyon).length;
+
+    return `
+        <section class="lrp-stats-grid">
+            ${[
+                ["Öğrenci No", studentState.data.studentNumber],
+                ["Zimmetli Bilgisayar", computers.length],
+                ["Aktif Bilgisayar", activeCount],
+                ["HDMI", hdmiCount],
+                ["Veyon", veyonCount]
+            ].map(([label, value]) => `
+                <article class="lrp-stat-card">
+                    <div class="lrp-stat-label">${label}</div>
+                    <div class="lrp-stat-value">${value}</div>
+                </article>
+            `).join("")}
+        </section>
+        <section class="lrp-grid-2">
+            ${computers.length > 0 ? computers.map(computer => `
+                <article class="lrp-card">
+                    <h3 class="lrp-card-title">${computer.assetCode}</h3>
+                    <div class="lrp-muted">${computer.name}</div>
+                    <div class="lrp-grid-2" style="margin-top: 14px;">
+                        <div><div class="lrp-muted">Laboratuvar</div><strong>${computer.labName}</strong></div>
+                        <div><div class="lrp-muted">Konum</div><strong>${computer.labLocation}</strong></div>
+                        <div><div class="lrp-muted">Marka</div><strong>${computer.brand}</strong></div>
+                        <div><div class="lrp-muted">RAM</div><strong>${computer.ramGb} GB</strong></div>
+                    </div>
+                    <div style="margin-top: 14px;">${renderStudentStatus(computer.status)}</div>
+                </article>
+            `).join("") : `<div class="lrp-empty">Bu hesaba bağlı bir bilgisayar ataması yok.</div>`}
+        </section>
     `;
+}
 
-    document.getElementById("studentComputerTable").innerHTML = table;
+function renderStudentDetails() {
+    const computers = studentState.data.computers;
+
+    if (computers.length === 0) {
+        return `<section class="lrp-empty">Bu hesaba bağlı bir bilgisayar ataması yok.</section>`;
+    }
+
+    return `
+        <section class="lrp-table-card">
+            <div class="lrp-table-wrap">
+                <table class="lrp-table">
+                    <thead>
+                        <tr>
+                            <th>Demirbaş Kodu</th>
+                            <th>Ad</th>
+                            <th>Marka</th>
+                            <th>İşlemci</th>
+                            <th>RAM</th>
+                            <th>Seri No</th>
+                            <th>HDMI</th>
+                            <th>Veyon</th>
+                            <th>Durum</th>
+                            <th>Laboratuvar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${computers.map(computer => `
+                            <tr>
+                                <td>${computer.assetCode}</td>
+                                <td>${computer.name}</td>
+                                <td>${computer.brand}</td>
+                                <td>${computer.processor}</td>
+                                <td>${computer.ramGb} GB</td>
+                                <td>${computer.serialNumber}</td>
+                                <td>${computer.hasHdmi ? "Var" : "Yok"}</td>
+                                <td>${computer.hasVeyon ? "Var" : "Yok"}</td>
+                                <td>${renderStudentStatus(computer.status)}</td>
+                                <td>${computer.labName}</td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    `;
 }
 
 function renderStudentStatus(status) {
     const map = {
-        1: ["Aktif", "status-active"],
-        2: ["Bakımda", "status-maintenance"],
-        3: ["Pasif", "status-passive"]
+        1: ["Aktif", "active"],
+        2: ["Bakımda", "maintenance"],
+        3: ["Pasif", "passive"]
     };
 
-    const [label, className] = map[status] ?? ["Bilinmiyor", "status-passive"];
-    return `<span class="status-pill ${className}">${label}</span>`;
-}
-
-function renderStudentStatusText(status) {
-    const map = {
-        1: "Aktif",
-        2: "Bakımda",
-        3: "Pasif"
-    };
-
-    return map[status] ?? "Bilinmiyor";
+    const [label, className] = map[status] ?? ["Bilinmiyor", "passive"];
+    return `<span class="lrp-status ${className}">${label}</span>`;
 }

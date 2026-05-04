@@ -6,22 +6,25 @@
     <title>LRP Giriş</title>
     <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
-    <div class="login-shell">
-        <section class="login-card">
-            <p class="eyebrow">LRP</p>
-            <h1>Laboratuvar Kaynak Planlama</h1>
-            <p class="hero-copy">Admin ve öğrenci girişleri için rol bazlı yönlendirme aktif.</p>
-            <form id="loginForm" class="dialog-form">
+<body class="lrp-body">
+    <div class="lrp-login-shell">
+        <section class="lrp-login-card">
+            <div class="lrp-login-badge">LRP</div>
+            <p class="lrp-login-step">Laboratuvar Kaynak Planlama</p>
+            <h1>Sisteme Giriş Yap</h1>
+            <p class="lrp-login-text">Yönetici ve öğrenci girişleri rol bazlı olarak yönlendirilir.</p>
+
+            <form id="loginForm" class="lrp-form">
                 <label>Kullanıcı Adı<input id="username" required></label>
                 <label>Şifre<input id="password" type="password" required></label>
-                <button type="submit">Giriş Yap</button>
-                <p id="loginError" class="error-text"></p>
+                <button class="lrp-button lrp-button-block" type="submit">Giriş Yap</button>
+                <p id="loginError" class="lrp-error-text"></p>
             </form>
-            <div class="login-hint">
+
+            <div class="lrp-login-info">
                 <strong>Demo Hesaplar</strong>
                 <span>Admin: admin / 1234</span>
-                <span>Öğrenci atandığında kullanıcı adı ve şifre olarak öğrenci numarası oluşur.</span>
+                <span>Öğrenci hesabı, atama yapıldığında öğrenci numarası ile oluşur.</span>
             </div>
         </section>
     </div>

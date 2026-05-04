@@ -8,33 +8,53 @@ const endpoints = {
 const state = {
     labs: [],
     computers: [],
-    students: []
+    students: [],
+    summary: null,
+    currentPage: "dashboard"
 };
 
-document.addEventListener("DOMContentLoaded", () => {
+const pageConfig = {
+    dashboard: { eyebrow: "Yönetim", title: "Gösterge Paneli", actionText: "" },
+    labs: { eyebrow: "Yönetim", title: "Laboratuvarlar", actionText: "Yeni Laboratuvar" },
+    computers: { eyebrow: "Envanter", title: "Bilgisayarlar", actionText: "Yeni Bilgisayar" },
+    students: { eyebrow: "Kullanıcılar", title: "Öğrenciler", actionText: "Yeni Öğrenci" }
+};
+
+document.addEventListener("DOMContentLoaded", async () => {
     const user = requireRole("Admin");
     if (!user) {
         return;
     }
 
-    document.getElementById("adminWelcome").textContent = `Hoş geldiniz, ${user.fullName}`;
+    document.getElementById("adminWelcome").textContent = user.fullName;
     document.getElementById("logoutButton").addEventListener("click", logout);
-    bindDialogButtons();
+    document.getElementById("sidebarNav").addEventListener("click", handleNavigation);
+    document.getElementById("primaryActionButton").addEventListener("click", handlePrimaryAction);
+
     bindForms();
-    initialize();
+    bindModalCloseButtons();
+    await initialize();
 });
 
 async function initialize() {
-    await Promise.all([loadDashboard(), loadLabs(), loadStudents(), loadComputers()]);
+    await loadAllData();
+    loadPage("dashboard");
 }
 
-function bindDialogButtons() {
-    document.querySelectorAll("[data-dialog-target]").forEach(button => {
-        button.addEventListener("click", () => {
-            resetForm(button.dataset.dialogTarget);
-            document.getElementById(button.dataset.dialogTarget).showModal();
-        });
-    });
+async function loadAllData() {
+    setSystemStatus("Güncelleniyor", "warning");
+    const results = await Promise.all([
+        request({ url: endpoints.dashboard }),
+        request({ url: endpoints.labs }),
+        request({ url: endpoints.students }),
+        request({ url: endpoints.computers })
+    ]);
+
+    state.summary = results[0].data;
+    state.labs = results[1].data;
+    state.students = results[2].data;
+    state.computers = results[3].data;
+    setSystemStatus("Hazır", "success");
 }
 
 function bindForms() {
@@ -43,137 +63,293 @@ function bindForms() {
     document.getElementById("studentForm").addEventListener("submit", submitStudentForm);
 }
 
-async function loadDashboard() {
-    const summary = await requestJson(endpoints.dashboard);
-    const items = [
-        ["Laboratuvar", summary.totalLabs],
-        ["Bilgisayar", summary.totalComputers],
-        ["Aktif Bilgisayar", summary.activeComputers],
-        ["Bakımdaki Bilgisayar", summary.maintenanceComputers],
-        ["Öğrenci", summary.totalStudents]
+function bindModalCloseButtons() {
+    document.querySelectorAll("[data-close-modal]").forEach(button => {
+        button.addEventListener("click", () => closeModal(button.dataset.closeModal));
+    });
+}
+
+function handleNavigation(event) {
+    const button = event.target.closest("[data-page]");
+    if (!button) {
+        return;
+    }
+
+    loadPage(button.dataset.page);
+}
+
+function handlePrimaryAction() {
+    if (state.currentPage === "labs") {
+        openLabModal();
+    } else if (state.currentPage === "computers") {
+        openComputerModal();
+    } else if (state.currentPage === "students") {
+        openStudentModal();
+    }
+}
+
+function loadPage(page) {
+    state.currentPage = page;
+    updatePageHeader(page);
+    updateSidebar(page);
+
+    const content = document.getElementById("pageContent");
+    if (page === "dashboard") {
+        content.innerHTML = renderDashboardPage();
+    } else if (page === "labs") {
+        content.innerHTML = renderLabsPage();
+    } else if (page === "computers") {
+        content.innerHTML = renderComputersPage();
+    } else if (page === "students") {
+        content.innerHTML = renderStudentsPage();
+    }
+}
+
+function updatePageHeader(page) {
+    const config = pageConfig[page];
+    document.getElementById("pageEyebrow").textContent = config.eyebrow;
+    document.getElementById("pageTitle").textContent = config.title;
+
+    const button = document.getElementById("primaryActionButton");
+    if (config.actionText) {
+        button.textContent = config.actionText;
+        button.hidden = false;
+    } else {
+        button.hidden = true;
+    }
+}
+
+function updateSidebar(page) {
+    document.querySelectorAll("#sidebarNav [data-page]").forEach(button => {
+        button.classList.toggle("active", button.dataset.page === page);
+    });
+}
+
+function renderDashboardPage() {
+    const stats = [
+        ["Laboratuvar", state.summary.totalLabs],
+        ["Bilgisayar", state.summary.totalComputers],
+        ["Aktif Bilgisayar", state.summary.activeComputers],
+        ["Bakımdaki Bilgisayar", state.summary.maintenanceComputers],
+        ["Öğrenci", state.summary.totalStudents]
     ];
 
-    document.getElementById("statsGrid").innerHTML = items.map(([label, value]) => `
-        <article class="stat-card">
-            <span>${label}</span>
-            <strong>${value}</strong>
-        </article>
-    `).join("");
-}
-
-async function loadLabs() {
-    state.labs = await requestJson(endpoints.labs);
-    renderLabs();
-    fillLabSelect();
-}
-
-async function loadStudents() {
-    state.students = await requestJson(endpoints.students);
-    renderStudents();
-    fillStudentSelect();
-}
-
-async function loadComputers() {
-    state.computers = await requestJson(endpoints.computers);
-    renderComputers();
-}
-
-function renderLabs() {
-    const container = document.getElementById("labsList");
-    container.innerHTML = state.labs.map(lab => `
-        <article class="lab-card">
-            <h3>${lab.name}</h3>
-            <p class="lab-meta">Konum: ${lab.location}</p>
-            <p class="lab-meta">Kapasite: ${lab.capacity}</p>
-            <p class="lab-meta">Bilgisayar: ${lab.computerCount}</p>
-            <div class="row-actions">
-                <button onclick="editLab(${lab.id})">Düzenle</button>
-                <button class="danger" onclick="deleteLab(${lab.id})">Sil</button>
+    return `
+        <section class="lrp-stats-grid">
+            ${stats.map(([label, value]) => `
+                <article class="lrp-stat-card">
+                    <div class="lrp-stat-label">${label}</div>
+                    <div class="lrp-stat-value">${value}</div>
+                </article>
+            `).join("")}
+        </section>
+        <section class="lrp-grid-2">
+            <div class="lrp-card">
+                <h3 class="lrp-card-title">Laboratuvar Özeti</h3>
+                <div class="lrp-grid">
+                    ${state.labs.map(lab => `
+                        <article class="lrp-card">
+                            <h4 class="lrp-card-title">${lab.name}</h4>
+                            <div class="lrp-muted">${lab.location}</div>
+                            <div class="lrp-grid-2" style="margin-top: 14px;">
+                                <div>
+                                    <div class="lrp-muted">Kapasite</div>
+                                    <strong>${lab.capacity}</strong>
+                                </div>
+                                <div>
+                                    <div class="lrp-muted">Bilgisayar</div>
+                                    <strong>${lab.computerCount}</strong>
+                                </div>
+                            </div>
+                        </article>
+                    `).join("")}
+                </div>
             </div>
-        </article>
-    `).join("");
+            <div class="lrp-table-card">
+                <h3 class="lrp-card-title">Son Durum</h3>
+                <div class="lrp-table-wrap">
+                    <table class="lrp-table">
+                        <thead>
+                            <tr>
+                                <th>Demirbaş Kodu</th>
+                                <th>Ad</th>
+                                <th>Laboratuvar</th>
+                                <th>Durum</th>
+                                <th>Sorumlu Öğrenci</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${state.computers.map(computer => `
+                                <tr>
+                                    <td>${computer.assetCode}</td>
+                                    <td>${computer.name}</td>
+                                    <td>${computer.labName}</td>
+                                    <td>${renderStatus(computer.status)}</td>
+                                    <td>${computer.responsibleStudentName ?? "-"}</td>
+                                </tr>
+                            `).join("")}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    `;
 }
 
-function renderComputers() {
-    const table = `
-        <table>
-            <thead>
-                <tr>
-                    <th>Demirbaş Kodu</th>
-                    <th>Ad</th>
-                    <th>Marka</th>
-                    <th>İşlemci</th>
-                    <th>RAM</th>
-                    <th>Seri No</th>
-                    <th>Donanım</th>
-                    <th>Durum</th>
-                    <th>Laboratuvar</th>
-                    <th>Sorumlu Öğrenci</th>
-                    <th>İşlem</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${state.computers.map(computer => `
-                    <tr>
-                        <td>${computer.assetCode}</td>
-                        <td>${computer.name}</td>
-                        <td>${computer.brand}</td>
-                        <td>${computer.processor}</td>
-                        <td>${computer.ramGb} GB</td>
-                        <td>${computer.serialNumber}</td>
-                        <td>${renderHardware(computer)}</td>
-                        <td>${renderStatus(computer.status)}</td>
-                        <td>${computer.labName}</td>
-                        <td>${computer.responsibleStudentName ?? "-"}</td>
-                        <td>
-                            <div class="row-actions">
-                                <button onclick="editComputer(${computer.id})">Düzenle</button>
-                                <button class="danger" onclick="deleteComputer(${computer.id})">Sil</button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join("")}
-            </tbody>
-        </table>
+function renderLabsPage() {
+    return `
+        <section class="lrp-grid-3">
+            ${state.labs.map(lab => `
+                <article class="lrp-card">
+                    <h3 class="lrp-card-title">${lab.name}</h3>
+                    <div class="lrp-muted">${lab.location}</div>
+                    <div class="lrp-grid-2" style="margin: 16px 0;">
+                        <div>
+                            <div class="lrp-muted">Kapasite</div>
+                            <strong>${lab.capacity}</strong>
+                        </div>
+                        <div>
+                            <div class="lrp-muted">Aktif</div>
+                            <strong>${lab.activeComputerCount}</strong>
+                        </div>
+                    </div>
+                    <div class="lrp-actions">
+                        <button class="lrp-button lrp-button-ghost" onclick="editLab(${lab.id})">Düzenle</button>
+                        <button class="lrp-button lrp-button-danger" onclick="deleteLab(${lab.id})">Sil</button>
+                    </div>
+                </article>
+            `).join("")}
+        </section>
     `;
-
-    document.getElementById("computersTable").innerHTML = table;
 }
 
-function renderStudents() {
-    const table = `
-        <table>
-            <thead>
-                <tr>
-                    <th>Ad Soyad</th>
-                    <th>Öğrenci No</th>
-                    <th>E-posta</th>
-                    <th>Hesap</th>
-                    <th>Sorumlu Olduğu PC</th>
-                    <th>İşlem</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${state.students.map(student => `
-                    <tr>
-                        <td>${student.firstName} ${student.lastName}</td>
-                        <td>${student.studentNumber}</td>
-                        <td>${student.email}</td>
-                        <td>${student.hasUserAccount ? "Oluştu" : "-"}</td>
-                        <td>${student.responsibleComputerCount}</td>
-                        <td>
-                            <div class="row-actions">
-                                <button onclick="editStudent(${student.id})">Düzenle</button>
-                                <button class="danger" onclick="deleteStudent(${student.id})">Sil</button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join("")}
-            </tbody>
-        </table>
+function renderComputersPage() {
+    return `
+        <section class="lrp-table-card">
+            <div class="lrp-table-wrap">
+                <table class="lrp-table">
+                    <thead>
+                        <tr>
+                            <th>Demirbaş Kodu</th>
+                            <th>Ad</th>
+                            <th>Marka</th>
+                            <th>İşlemci</th>
+                            <th>RAM</th>
+                            <th>Seri No</th>
+                            <th>Donanım</th>
+                            <th>Durum</th>
+                            <th>Laboratuvar</th>
+                            <th>Sorumlu Öğrenci</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${state.computers.map(computer => `
+                            <tr>
+                                <td>${computer.assetCode}</td>
+                                <td>${computer.name}</td>
+                                <td>${computer.brand}</td>
+                                <td>${computer.processor}</td>
+                                <td>${computer.ramGb} GB</td>
+                                <td>${computer.serialNumber}</td>
+                                <td>${renderHardware(computer)}</td>
+                                <td>${renderStatus(computer.status)}</td>
+                                <td>${computer.labName}</td>
+                                <td>${computer.responsibleStudentName ?? "-"}</td>
+                                <td>
+                                    <div class="lrp-actions">
+                                        <button class="lrp-button lrp-button-ghost" onclick="editComputer(${computer.id})">Düzenle</button>
+                                        <button class="lrp-button lrp-button-danger" onclick="deleteComputer(${computer.id})">Sil</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            </div>
+        </section>
     `;
+}
 
-    document.getElementById("studentsTable").innerHTML = table;
+function renderStudentsPage() {
+    return `
+        <section class="lrp-table-card">
+            <div class="lrp-table-wrap">
+                <table class="lrp-table">
+                    <thead>
+                        <tr>
+                            <th>Ad Soyad</th>
+                            <th>Öğrenci No</th>
+                            <th>E-posta</th>
+                            <th>Hesap</th>
+                            <th>Sorumlu Olduğu PC</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${state.students.map(student => `
+                            <tr>
+                                <td>${student.firstName} ${student.lastName}</td>
+                                <td>${student.studentNumber}</td>
+                                <td>${student.email}</td>
+                                <td>${student.hasUserAccount ? '<span class="lrp-pill lrp-pill-success">Oluştu</span>' : '<span class="lrp-pill">Yok</span>'}</td>
+                                <td>${student.responsibleComputerCount}</td>
+                                <td>
+                                    <div class="lrp-actions">
+                                        <button class="lrp-button lrp-button-ghost" onclick="editStudent(${student.id})">Düzenle</button>
+                                        <button class="lrp-button lrp-button-danger" onclick="deleteStudent(${student.id})">Sil</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    `;
+}
+
+function renderStatus(status) {
+    const map = {
+        1: ["Aktif", "active"],
+        2: ["Bakımda", "maintenance"],
+        3: ["Pasif", "passive"]
+    };
+
+    const [label, className] = map[status] ?? ["Bilinmiyor", "passive"];
+    return `<span class="lrp-status ${className}">${label}</span>`;
+}
+
+function renderHardware(computer) {
+    const items = [];
+    if (computer.hasHdmi) items.push("HDMI");
+    if (computer.hasVeyon) items.push("Veyon");
+    return items.length > 0 ? items.join(", ") : "-";
+}
+
+function openLabModal() {
+    resetForm("lab");
+    openModal("labModal");
+}
+
+function openComputerModal() {
+    resetForm("computer");
+    fillLabSelect();
+    fillStudentSelect();
+    openModal("computerModal");
+}
+
+function openStudentModal() {
+    resetForm("student");
+    openModal("studentModal");
+}
+
+function openModal(id) {
+    document.getElementById(id).classList.add("open");
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.remove("open");
 }
 
 function fillLabSelect() {
@@ -189,30 +365,8 @@ function fillStudentSelect() {
         .join("")}`;
 }
 
-function renderStatus(status) {
-    const map = {
-        1: ["Aktif", "status-active"],
-        2: ["Bakımda", "status-maintenance"],
-        3: ["Pasif", "status-passive"]
-    };
-    const [label, className] = map[status] ?? ["Bilinmiyor", "status-passive"];
-    return `<span class="status-pill ${className}">${label}</span>`;
-}
-
-function renderHardware(computer) {
-    const items = [];
-    if (computer.hasHdmi) {
-        items.push("HDMI");
-    }
-    if (computer.hasVeyon) {
-        items.push("Veyon");
-    }
-    return items.length > 0 ? items.join(", ") : "-";
-}
-
 async function submitLabForm(event) {
     event.preventDefault();
-
     const id = document.getElementById("labId").value;
     const payload = {
         name: document.getElementById("labName").value.trim(),
@@ -221,13 +375,12 @@ async function submitLabForm(event) {
     };
 
     await saveEntity(id, endpoints.labs, payload);
-    closeDialog("labDialog");
-    await refreshAll();
+    closeModal("labModal");
+    await refreshAndReload();
 }
 
 async function submitComputerForm(event) {
     event.preventDefault();
-
     const id = document.getElementById("computerId").value;
     const studentId = document.getElementById("computerStudentId").value;
     const payload = {
@@ -244,13 +397,12 @@ async function submitComputerForm(event) {
     };
 
     await saveEntity(id, endpoints.computers, payload);
-    closeDialog("computerDialog");
-    await refreshAll();
+    closeModal("computerModal");
+    await refreshAndReload();
 }
 
 async function submitStudentForm(event) {
     event.preventDefault();
-
     const id = document.getElementById("studentId").value;
     const payload = {
         firstName: document.getElementById("studentFirstName").value.trim(),
@@ -260,15 +412,16 @@ async function submitStudentForm(event) {
     };
 
     await saveEntity(id, endpoints.students, payload);
-    closeDialog("studentDialog");
-    await refreshAll();
+    closeModal("studentModal");
+    await refreshAndReload();
 }
 
 async function saveEntity(id, endpoint, payload) {
     const method = id ? "PUT" : "POST";
     const url = id ? `${endpoint}/${id}` : endpoint;
 
-    await fetchJson(url, {
+    await request({
+        url,
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -292,31 +445,34 @@ async function confirmAndDelete(url) {
         return;
     }
 
-    await fetchJson(url, { method: "DELETE" });
-    await refreshAll();
+    await request({ url, method: "DELETE" });
+    await refreshAndReload();
 }
 
-async function refreshAll() {
-    document.getElementById("systemStatus").textContent = "Güncelleniyor";
-    await Promise.all([loadDashboard(), loadLabs(), loadStudents(), loadComputers()]);
-    document.getElementById("systemStatus").textContent = "Hazır";
+async function refreshAndReload() {
+    await loadAllData();
+    loadPage(state.currentPage);
 }
 
 function editLab(id) {
     const lab = state.labs.find(item => item.id === id);
     if (!lab) return;
 
+    resetForm("lab");
     document.getElementById("labId").value = lab.id;
     document.getElementById("labName").value = lab.name;
     document.getElementById("labLocation").value = lab.location;
     document.getElementById("labCapacity").value = lab.capacity;
-    document.getElementById("labDialog").showModal();
+    openModal("labModal");
 }
 
 function editComputer(id) {
     const computer = state.computers.find(item => item.id === id);
     if (!computer) return;
 
+    resetForm("computer");
+    fillLabSelect();
+    fillStudentSelect();
     document.getElementById("computerId").value = computer.id;
     document.getElementById("computerName").value = computer.name;
     document.getElementById("computerBrand").value = computer.brand;
@@ -328,71 +484,41 @@ function editComputer(id) {
     document.getElementById("computerStatus").value = computer.status;
     document.getElementById("computerLabId").value = computer.labId;
     document.getElementById("computerStudentId").value = computer.responsibleStudentId ?? "";
-    document.getElementById("computerDialog").showModal();
+    openModal("computerModal");
 }
 
 function editStudent(id) {
     const student = state.students.find(item => item.id === id);
     if (!student) return;
 
+    resetForm("student");
     document.getElementById("studentId").value = student.id;
     document.getElementById("studentFirstName").value = student.firstName;
     document.getElementById("studentLastName").value = student.lastName;
     document.getElementById("studentNumber").value = student.studentNumber;
     document.getElementById("studentEmail").value = student.email;
-    document.getElementById("studentDialog").showModal();
+    openModal("studentModal");
 }
 
-function resetForm(dialogId) {
-    const forms = {
-        labDialog: ["labId", "labName", "labLocation", "labCapacity"],
-        computerDialog: ["computerId", "computerName", "computerBrand", "computerProcessor", "computerRamGb", "computerSerialNumber", "computerStatus", "computerLabId", "computerStudentId", "computerHasHdmi", "computerHasVeyon"],
-        studentDialog: ["studentId", "studentFirstName", "studentLastName", "studentNumber", "studentEmail"]
-    };
-
-    for (const fieldId of forms[dialogId]) {
-        const element = document.getElementById(fieldId);
-        if (!element) continue;
-        if (element.type === "checkbox") {
-            element.checked = false;
-        } else if (element.tagName === "SELECT") {
-            element.selectedIndex = 0;
-        } else {
-            element.value = "";
-        }
+function resetForm(type) {
+    if (type === "lab") {
+        document.getElementById("labForm").reset();
+        document.getElementById("labId").value = "";
+    } else if (type === "computer") {
+        document.getElementById("computerForm").reset();
+        document.getElementById("computerId").value = "";
+    } else if (type === "student") {
+        document.getElementById("studentForm").reset();
+        document.getElementById("studentId").value = "";
     }
 }
 
-function closeDialog(dialogId) {
-    document.getElementById(dialogId).close();
-}
-
-async function requestJson(url) {
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(await extractError(response));
-    }
-
-    return response.json();
-}
-
-async function fetchJson(url, options) {
-    const response = await fetch(url, options);
-    if (!response.ok) {
-        alert(await extractError(response));
-        throw new Error("Request failed");
-    }
-
-    return response;
-}
-
-async function extractError(response) {
-    try {
-        const data = await response.json();
-        return data.message ?? "Bir hata oluştu.";
-    } catch {
-        return "Bir hata oluştu.";
-    }
+function setSystemStatus(text, style) {
+    const badge = document.getElementById("systemStatus");
+    badge.textContent = text;
+    badge.className = style === "success"
+        ? "lrp-pill lrp-pill-success"
+        : "lrp-pill";
 }
 
 window.editLab = editLab;

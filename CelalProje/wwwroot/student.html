@@ -10,43 +10,46 @@
         requireRole("Student");
     </script>
 </head>
-<body>
-    <div class="page-shell">
-        <header class="hero">
-            <div>
-                <p class="eyebrow">Öğrenci Paneli</p>
-                <h1>LRP Öğrenci Ekranı</h1>
-                <p class="hero-copy">Zimmetinize atanmış bilgisayarın teknik özelliklerini bu panelden görebilirsiniz.</p>
-            </div>
-            <div class="hero-badge">
-                <span>Aktif Rol</span>
-                <strong id="studentRole">Student</strong>
-            </div>
-        </header>
-
-        <section class="toolbar">
-            <div id="studentWelcome" class="toolbar-text"></div>
-            <button id="logoutButton">Çıkış Yap</button>
-        </section>
-
-        <section class="stats-grid" id="studentStats"></section>
-
-        <main class="content-grid">
-            <section class="panel student-panel">
-                <div class="panel-header">
-                    <h2>Zimmetli Bilgisayarım</h2>
+<body class="lrp-body">
+    <div class="lrp-shell">
+        <aside class="lrp-sidebar">
+            <div class="lrp-brand">
+                <div class="lrp-brand-badge">LRP</div>
+                <div>
+                    <div class="lrp-brand-step">Öğrenci</div>
+                    <h1>Öğrenci Paneli</h1>
                 </div>
-                <div id="studentComputerCards" class="card-list"></div>
+            </div>
+
+            <p class="lrp-sidebar-text">Zimmetinize atanmış bilgisayarın teknik özelliklerini buradan görüntüleyin.</p>
+
+            <nav class="lrp-nav" id="studentSidebarNav">
+                <button class="lrp-nav-button active" data-page="overview" type="button">Genel Bakış</button>
+                <button class="lrp-nav-button" data-page="details" type="button">Teknik Detaylar</button>
+            </nav>
+
+            <div class="lrp-sidebar-footer">
+                <div class="lrp-sidebar-label">Oturum</div>
+                <div class="lrp-sidebar-user" id="studentWelcome"></div>
+                <button class="lrp-button lrp-button-warn lrp-button-block" id="logoutButton" type="button">Çıkış Yap</button>
+            </div>
+        </aside>
+
+        <main class="lrp-main">
+            <section class="lrp-topbar">
+                <div>
+                    <div class="lrp-topbar-label" id="studentPageEyebrow">Portal</div>
+                    <h2 id="studentPageTitle">Genel Bakış</h2>
+                </div>
+                <div class="lrp-topbar-actions">
+                    <span class="lrp-pill lrp-pill-success">Öğrenci Erişimi</span>
+                </div>
             </section>
 
-            <section class="panel">
-                <div class="panel-header">
-                    <h2>Teknik Özellikler</h2>
-                </div>
-                <div id="studentComputerTable" class="table-wrap"></div>
-            </section>
+            <div id="studentPageContent" class="lrp-page-content"></div>
         </main>
     </div>
-    <script src="/student.js"></script>
+
+    <script src="/student.js" defer></script>
 </body>
 </html>

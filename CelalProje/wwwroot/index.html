@@ -3,117 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LRP - Laboratuvar Kaynak Planlama</title>
+    <title>LRP Yönetim Paneli</title>
     <link rel="stylesheet" href="/styles.css">
     <script src="/auth.js"></script>
     <script>
         requireRole("Admin");
     </script>
 </head>
-<body>
-    <div class="page-shell">
-        <header class="hero">
-            <div>
-                <p class="eyebrow">Aşama 1</p>
-                <h1>LRP Laboratuvar Kaynak Planlama Sistemi</h1>
-                <p class="hero-copy">
-                    Laboratuvarları, bilgisayarları ve sorumlu öğrencileri tek panelden yönetin.
-                </p>
+<body class="lrp-body">
+    <div class="lrp-shell">
+        <aside class="lrp-sidebar">
+            <div class="lrp-brand">
+                <div class="lrp-brand-badge">LRP</div>
+                <div>
+                    <div class="lrp-brand-step">Aşama 1</div>
+                    <h1>Yönetim Paneli</h1>
+                </div>
             </div>
-            <div class="hero-badge">
-                <span>Sistem Durumu</span>
-                <strong id="systemStatus">Hazır</strong>
+
+            <p class="lrp-sidebar-text">Laboratuvar, bilgisayar ve öğrenci yönetimini tek ekrandan yönetin.</p>
+
+            <nav class="lrp-nav" id="sidebarNav">
+                <button class="lrp-nav-button active" data-page="dashboard" type="button">Gösterge Paneli</button>
+                <button class="lrp-nav-button" data-page="labs" type="button">Laboratuvarlar</button>
+                <button class="lrp-nav-button" data-page="computers" type="button">Bilgisayarlar</button>
+                <button class="lrp-nav-button" data-page="students" type="button">Öğrenciler</button>
+            </nav>
+
+            <div class="lrp-sidebar-footer">
+                <div class="lrp-sidebar-label">Oturum</div>
+                <div class="lrp-sidebar-user" id="adminWelcome"></div>
+                <button class="lrp-button lrp-button-warn lrp-button-block" id="logoutButton" type="button">Çıkış Yap</button>
             </div>
-        </header>
-        <section class="toolbar">
-            <div id="adminWelcome" class="toolbar-text"></div>
-            <button id="logoutButton">Çıkış Yap</button>
-        </section>
+        </aside>
 
-        <section class="stats-grid" id="statsGrid"></section>
-
-        <main class="content-grid">
-            <section class="panel">
-                <div class="panel-header">
-                    <h2>Laboratuvarlar</h2>
-                    <button data-dialog-target="labDialog">Yeni Laboratuvar</button>
+        <main class="lrp-main">
+            <section class="lrp-topbar">
+                <div>
+                    <div class="lrp-topbar-label" id="pageEyebrow">Yönetim</div>
+                    <h2 id="pageTitle">Gösterge Paneli</h2>
                 </div>
-                <div id="labsList" class="card-list"></div>
+                <div class="lrp-topbar-actions">
+                    <span class="lrp-pill lrp-pill-success" id="systemStatus">Hazır</span>
+                    <button class="lrp-button" id="primaryActionButton" type="button" hidden></button>
+                </div>
             </section>
 
-            <section class="panel">
-                <div class="panel-header">
-                    <h2>Bilgisayarlar</h2>
-                    <button data-dialog-target="computerDialog">Yeni Bilgisayar</button>
-                </div>
-                <div id="computersTable" class="table-wrap"></div>
-            </section>
-
-            <section class="panel">
-                <div class="panel-header">
-                    <h2>Öğrenciler</h2>
-                    <button data-dialog-target="studentDialog">Yeni Öğrenci</button>
-                </div>
-                <div id="studentsTable" class="table-wrap"></div>
-            </section>
+            <div id="pageContent" class="lrp-page-content"></div>
         </main>
     </div>
 
-    <dialog id="labDialog">
-        <form id="labForm" method="dialog" class="dialog-form">
-            <h3>Laboratuvar Kaydı</h3>
-            <input type="hidden" id="labId">
-            <label>Laboratuvar Adı<input id="labName" required></label>
-            <label>Konum<input id="labLocation" required></label>
-            <label>Kapasite<input id="labCapacity" type="number" min="1" required></label>
-            <menu>
-                <button value="cancel" class="ghost">İptal</button>
-                <button id="saveLabButton" value="default">Kaydet</button>
-            </menu>
-        </form>
-    </dialog>
+    <div class="lrp-modal-backdrop" id="labModal">
+        <div class="lrp-modal">
+            <form id="labForm" class="lrp-form">
+                <div class="lrp-modal-header">
+                    <h3>Laboratuvar Kaydı</h3>
+                    <button class="lrp-close-button" data-close-modal="labModal" type="button">×</button>
+                </div>
+                <input type="hidden" id="labId">
+                <label>Laboratuvar Adı<input id="labName" required></label>
+                <label>Konum<input id="labLocation" required></label>
+                <label>Kapasite<input id="labCapacity" type="number" min="1" required></label>
+                <div class="lrp-form-actions">
+                    <button class="lrp-button lrp-button-ghost" data-close-modal="labModal" type="button">İptal</button>
+                    <button class="lrp-button" type="submit">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-    <dialog id="computerDialog">
-        <form id="computerForm" method="dialog" class="dialog-form">
-            <h3>Bilgisayar Kaydı</h3>
-            <input type="hidden" id="computerId">
-            <label>Bilgisayar Adı<input id="computerName" required></label>
-            <label>Marka<input id="computerBrand" required></label>
-            <label>İşlemci<input id="computerProcessor" required></label>
-            <label>RAM (GB)<input id="computerRamGb" type="number" min="1" required></label>
-            <label>Seri Numarası<input id="computerSerialNumber" required></label>
-            <label>Durum
-                <select id="computerStatus">
-                    <option value="1">Aktif</option>
-                    <option value="2">Bakımda</option>
-                    <option value="3">Pasif</option>
-                </select>
-            </label>
-            <label>Laboratuvar<select id="computerLabId" required></select></label>
-            <label>Sorumlu Öğrenci<select id="computerStudentId"></select></label>
-            <label class="checkbox-field"><input id="computerHasHdmi" type="checkbox"> HDMI Var</label>
-            <label class="checkbox-field"><input id="computerHasVeyon" type="checkbox"> Veyon Kurulu</label>
-            <menu>
-                <button value="cancel" class="ghost">İptal</button>
-                <button id="saveComputerButton" value="default">Kaydet</button>
-            </menu>
-        </form>
-    </dialog>
+    <div class="lrp-modal-backdrop" id="computerModal">
+        <div class="lrp-modal lrp-modal-wide">
+            <form id="computerForm" class="lrp-form">
+                <div class="lrp-modal-header">
+                    <h3>Bilgisayar Kaydı</h3>
+                    <button class="lrp-close-button" data-close-modal="computerModal" type="button">×</button>
+                </div>
+                <input type="hidden" id="computerId">
+                <div class="lrp-grid-2">
+                    <label>Bilgisayar Adı<input id="computerName" required></label>
+                    <label>Marka<input id="computerBrand" required></label>
+                    <label>İşlemci<input id="computerProcessor" required></label>
+                    <label>RAM (GB)<input id="computerRamGb" type="number" min="1" required></label>
+                    <label>Seri Numarası<input id="computerSerialNumber" required></label>
+                    <label>Durum
+                        <select id="computerStatus">
+                            <option value="1">Aktif</option>
+                            <option value="2">Bakımda</option>
+                            <option value="3">Pasif</option>
+                        </select>
+                    </label>
+                    <label>Laboratuvar<select id="computerLabId" required></select></label>
+                    <label>Sorumlu Öğrenci<select id="computerStudentId"></select></label>
+                </div>
+                <div class="lrp-checkbox-row">
+                    <label class="lrp-checkbox"><input id="computerHasHdmi" type="checkbox"> HDMI Var</label>
+                    <label class="lrp-checkbox"><input id="computerHasVeyon" type="checkbox"> Veyon Kurulu</label>
+                </div>
+                <div class="lrp-form-actions">
+                    <button class="lrp-button lrp-button-ghost" data-close-modal="computerModal" type="button">İptal</button>
+                    <button class="lrp-button" type="submit">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-    <dialog id="studentDialog">
-        <form id="studentForm" method="dialog" class="dialog-form">
-            <h3>Öğrenci Kaydı</h3>
-            <input type="hidden" id="studentId">
-            <label>Ad<input id="studentFirstName" required></label>
-            <label>Soyad<input id="studentLastName" required></label>
-            <label>Öğrenci No<input id="studentNumber" required></label>
-            <label>E-posta<input id="studentEmail" type="email" required></label>
-            <menu>
-                <button value="cancel" class="ghost">İptal</button>
-                <button id="saveStudentButton" value="default">Kaydet</button>
-            </menu>
-        </form>
-    </dialog>
+    <div class="lrp-modal-backdrop" id="studentModal">
+        <div class="lrp-modal">
+            <form id="studentForm" class="lrp-form">
+                <div class="lrp-modal-header">
+                    <h3>Öğrenci Kaydı</h3>
+                    <button class="lrp-close-button" data-close-modal="studentModal" type="button">×</button>
+                </div>
+                <input type="hidden" id="studentId">
+                <label>Ad<input id="studentFirstName" required></label>
+                <label>Soyad<input id="studentLastName" required></label>
+                <label>Öğrenci No<input id="studentNumber" required></label>
+                <label>E-posta<input id="studentEmail" type="email" required></label>
+                <div class="lrp-form-actions">
+                    <button class="lrp-button lrp-button-ghost" data-close-modal="studentModal" type="button">İptal</button>
+                    <button class="lrp-button" type="submit">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script src="/app.js" defer></script>
 </body>

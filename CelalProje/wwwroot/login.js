@@ -14,25 +14,22 @@ async function submitLoginForm(event) {
     const errorElement = document.getElementById("loginError");
     errorElement.textContent = "";
 
-    const payload = {
+    const payload = JSON.stringify({
         username: document.getElementById("username").value.trim(),
         password: document.getElementById("password").value
-    };
-
-    const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
     });
 
-    if (!response.ok) {
-        errorElement.textContent = "Kullanıcı adı veya şifre hatalı.";
-        return;
-    }
+    try {
+        const response = await request({
+            url: "/api/auth/login",
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: payload
+        });
 
-    const user = await response.json();
-    setAuthUser(user);
-    window.location.href = user.redirectUrl;
+        setAuthUser(response.data);
+        window.location.href = response.data.redirectUrl;
+    } catch {
+        errorElement.textContent = "Kullanıcı adı veya şifre hatalı.";
+    }
 }
