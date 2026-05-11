@@ -1,3 +1,4 @@
+
 Yapılan Proje nasıl çalıştırılır  ?
 
 1-Celal Proje adlı dosyayı , junjjn dosyasını ve  İnternet Programcılığı-proje adında ki 3 dosyayı indirin  
@@ -18,6 +19,6 @@ ve  ctrl s ile kaydedin ve  değiştirdiğiniz şifreyi  girin )
    -Öğrenciler bölümü : Bu bölümde öğrenci ekleyebilir  , silebilir ve  düzenleyebilirsiniz, 
    ayrıca  bilgisayarlar kısmında sorumlu olan öğrencileri de   görebilirsiniz.
    
-
+![Uploading resim.jpg…]()
    
 
