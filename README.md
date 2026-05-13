@@ -4,7 +4,7 @@ Yapılan Proje nasıl çalıştırılır  ?
 1-Celal Proje adlı dosyayı , junjjn dosyasını ve  İnternet Programcılığı-proje adında ki 3 dosyayı indirin  
 2-celal proje zip ini ayıklayın ve  celalsln  yi açın  
 3-projeyi açtıktan sonra  bir sll  sertifikası uyarısı olabilir kabul edin.
-4-proyei   https butonuna basarak çalıştırın ( f5  ile de çalıştırabilirsiniz) 
+4-projeyi   https butonuna basarak çalıştırın ( f5  ile de çalıştırabilirsiniz) 
 açılan  API Documentation Paneli ( swagger)  de   yer alan    Auth , Computers, Dashboard,Labs,Student ve schamas sınıflarını  görebilirsiniz
 5-panel açıldıktan sonra    önceden açmış oldugunuz   celalproje sln dosyasındaki  sağ taraftaki  çözüm gezgininde bulunan   CelalProje.http ye  basın 
 ve içindeki  localhost linkini kopyalayıp  webde çalıştırın  ( proje arkada çalışmalı aksi takdirde   host açılmayacaktır)
